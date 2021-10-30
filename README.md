@@ -8,7 +8,9 @@ Installing the Plugin using the WordPress Admin Plugin Upload:-
 
 Plugins that are not uploaded to the WordPress plugin directory should be uploaded using the upload method to install such plugins. I will show you how to install WordPress plugins using the upload option in the admin area.
 
-First, you need to download the plugin from the source (which will be a zip file). Next, you need to go to WordPress admin area and visit "Plugins » Add New" page.
+First, you need to download the plugin from the source: "https://github.com/gurubhajansingh/advatix-plugin/" (which will be a zip file named: 'advatix-plugin-master.zip').
+You have to extract this file and then you will have a README.md file and a folder named: 'advatix-plugin' convert this into a zip file. 
+Next, you need to go to WordPress admin area and visit "Plugins » Add New" page.
 
 After that, click on the ‘Upload Plugin’ button on top of the page.
 
