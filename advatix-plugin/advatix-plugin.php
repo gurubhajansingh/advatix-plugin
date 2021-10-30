@@ -17,7 +17,8 @@
  * 
  * */
 
-// Start Class
+
+ // Start Class
 if ( ! class_exists( 'ADVATIX_FEP_PLUGIN' ) ) {
 
 	class ADVATIX_FEP_PLUGIN {
