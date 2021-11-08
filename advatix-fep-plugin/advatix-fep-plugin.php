@@ -7,7 +7,7 @@
  * 
  * Plugin Name: Advatix FEP API Connection 
  * Plugin URI: https://gurubhajansingh.github.io/ 
- * Description: This plugin works with advatix fep API and it allows to send order details and receive order response. 123
+ * Description: This plugin works with advatix fep API and it allows to send order details and receive order response.
  * Version: 1.0.0
  * Author: Guru Bhajan Singh
  * Author URI: https://gurubhajansingh.github.io/ 
