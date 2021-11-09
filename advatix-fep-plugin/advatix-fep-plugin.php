@@ -313,7 +313,7 @@ add_action('woocommerce_new_order', function ($order_id) {
     
     $data = array(
         "accountId" => $accountID,
-        "referenceId" => $refID,
+        "referenceId" => $order_id,
         "orderNumber" => $order_id,
         "orderType" => "6",
         "addressType" => "Residential",
