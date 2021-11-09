@@ -153,12 +153,19 @@ if ( ! class_exists( 'ADVATIX_FEP_PLUGIN' ) ) {
 		 *
 		 * @since 1.0.0
 		 */
-		public static function create_admin_page() { ?>
+		public static function create_admin_page() {
+			
+			?>
 
             <div class="wrap">
     
                 <h1><?php esc_html_e( 'Advatix Fep API Settings', 'advatix-fep-plugin' ); ?></h1><hr>
-    
+				<?php
+					// $order = new WC_Order(13);
+					// echo "<pre>";
+					// print_r($order->get_data());
+					// echo "</pre>";
+				?>
                 <form method="post" action="options.php">
     
                     <?php settings_fields( 'theme_options' ); ?>
@@ -456,4 +463,165 @@ function fep_install() {
 	//add_option( 'jal_db_version', $jal_db_version );
 }
 register_activation_hook( __FILE__, 'fep_install' );
+
+
+function adv_remove__status( $statuses ){
+	if( isset( $statuses['wc-processing'] ) ){
+		unset( $statuses['wc-processing'] );
+	}
+	if( isset( $statuses['wc-pending'] ) ){
+		unset( $statuses['wc-pending'] );
+	}
+	if( isset( $statuses['wc-on-hold'] ) ){
+		unset( $statuses['wc-on-hold'] );
+	}
+	if( isset( $statuses['wc-completed'] ) ){
+		unset( $statuses['wc-completed'] );
+	}
+	if( isset( $statuses['wc-refunded'] ) ){
+		unset( $statuses['wc-refunded'] );
+	}
+	return $statuses;
+}
+add_filter( 'wc_order_statuses', 'adv_remove__status' );
+
+
+// Register new status
+function adv_register_created_order_status() {
+	register_post_status( 'wc-created', array(
+		'label'                     => 'Created',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Created (%s)', 'Created (%s)' )
+	) );
+	
+	register_post_status( 'wc-assigned', array(
+		'label'                     => 'Assigned',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Assigned (%s)', 'Assigned (%s)' )
+	) );
+	
+	register_post_status( 'wc-picked', array(
+		'label'                     => 'Picked',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Picked (%s)', 'Picked (%s)' )
+	) );
+	
+	register_post_status( 'wc-packaging', array(
+		'label'                     => 'Packaging',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Packaging (%s)', 'Packaging (%s)' )
+	) );
+	
+	register_post_status( 'wc-shipped', array(
+		'label'                     => 'Shipped',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Shipped (%s)', 'Shipped (%s)' )
+	) );
+	
+	register_post_status( 'wc-delivered', array(
+		'label'                     => 'Delivered',
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Delivered (%s)', 'Delivered (%s)' )
+	) );
+}
+add_action( 'init', 'adv_register_created_order_status' );
+
+// Add to list of WC Order statuses
+function adv_add_created_to_order_statuses( $order_statuses ) {
+ 
+	$new_order_statuses = array();
+ 
+	// add new order status after processing
+	// foreach ( $order_statuses as $key => $status ) {
+ 
+		// $new_order_statuses[ $key ] = $status;
+ 
+		$new_order_statuses['wc-created'] = 'Created';
+		$new_order_statuses['wc-assigned'] = 'Assigned';
+		$new_order_statuses['wc-picked'] = 'Picked';
+		$new_order_statuses['wc-packaging'] = 'Packaging';
+		$new_order_statuses['wc-shipped'] = 'Shipped';
+		$new_order_statuses['wc-delivered'] = 'Delivered';
+		$new_order_statuses['wc-cancelled'] = 'Cancelled';
+		$new_order_statuses['wc-failed'] = 'Failed';
+		
+	// }
+ 
+	return $new_order_statuses;
+}
+add_filter( 'wc_order_statuses', 'adv_add_created_to_order_statuses' );
+
+add_action( 'woocommerce_checkout_order_processed', 'adv_changing_order_status_before_payment', 10, 3 );
+function adv_changing_order_status_before_payment( $order_id, $posted_data, $order ){
+	$order->update_status( 'created' );
+}
+
+
+add_action( 'rest_api_init', function () {
+  register_rest_route( 'advatix-fep-plugin/v1', '/updateOrder', array(
+    'methods' => 'POST',
+    'callback' => 'adv_update_order',
+  ) );
+} );
+
+
+function adv_update_order( $request ) {
+	$parameters = $request->get_json_params();
+	
+	if(empty($parameters)){
+		return new WP_Error( 'invalid_data', 'Invalid json body', array( 'status' => 404 ) );
+	}
+	
+	if(empty($parameters['orderReferenceNumber'])){
+		return new WP_Error( 'invalid_order', 'Invalid order id', array( 'status' => 404 ) );
+	}
+	
+	$order = new WC_Order($parameters['orderReferenceNumber']);
+	
+	if(empty($order->get_data())){
+		return new WP_Error( 'invalid_order', 'Invalid order id', array( 'status' => 404 ) );
+	}
+	
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Created'){
+		$order->update_status('created');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Assigned'){
+		$order->update_status('assigned');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Picked'){
+		$order->update_status('picked');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Packaging'){
+		$order->update_status('packaging');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Cancelled'){
+		$order->update_status('cancelled');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Shipped'){
+		$order->update_status('shipped');
+	}
+	if($parameters['subOrdersList'][0]['orderStatusDesc']=='Delivered'){
+		$order->update_status('delivered');
+	}
+	
+	return $order->get_data();
+}
 ?>
