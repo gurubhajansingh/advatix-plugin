@@ -154,7 +154,28 @@ if ( ! class_exists( 'ADVATIX_FEP_PLUGIN' ) ) {
 		 * @since 1.0.0
 		 */
 		public static function create_admin_page() {
+			global $wpdb;
+			// $table_name = $wpdb->prefix . 'fep_api_order_resp';
+			// $q = $wpdb->get_results('SELECT * FROM '.$table_name);
 			
+			// echo "<pre>";
+			// print_r($q);
+			// echo "</pre>";
+			
+			// $order = wc_get_order( 866 );
+			
+			// foreach($order->get_items() as $k=>$v){
+				// $product = wc_get_product( $v->get_product_id() );
+				// $orderItems[] = array(
+									// 'sku' => $product->get_sku(),
+									// 'quantity' => $v->get_quantity(),
+									// 'price' => $v->get_total(),
+								// );
+			// }
+			
+			// echo "<pre>";
+			// print_r($orderItems);
+			// echo "</pre>";
 			?>
 
             <div class="wrap">
@@ -229,11 +250,11 @@ function advatix_api_option( $id = '' ) {
 }
 
 
-add_action('woocommerce_new_order', function ($order_id) {
+add_action('woocommerce_new_order', function ($order_id, $order) {
     global $wpdb;
     //echo '<script>alert('.$order_id.')</script>';
 
-    $order = wc_get_order( $order_id );
+    // $order = wc_get_order( $order_id );
     // $order_id  = "3979580080188"; // Get the order ID
     $parent_id = $order->get_parent_id(); // Get the parent order ID (for subscriptions…)
 
@@ -248,6 +269,15 @@ add_action('woocommerce_new_order', function ($order_id) {
     $date_created  = date('Y-m-d H:i:s'); // Get date created (WC_DateTime object)
     $date_created = "$date_created";
     $date_modified = $order->get_date_modified(); // Get date modified (WC_DateTime object)
+	
+	foreach($order->get_items() as $k=>$v){
+		$product = wc_get_product( $v->get_product_id() );
+		$orderItems[] = array(
+							'sku' => $product->get_sku(),
+							'quantity' => $v->get_quantity(),
+							'price' => $v->get_total(),
+						);
+	}
 
     if(!empty($order->get_shipping_first_name())){
         $shipping_first_name  = $order->get_shipping_first_name();
@@ -327,7 +357,7 @@ add_action('woocommerce_new_order', function ($order_id) {
         "shipToName" => $shipping_first_name.' '.$shipping_last_name,
         "shipToAddress" => $shipping_address_1.' '.$shipping_address_2,
         "shipToCity" => $shipping_city,
-        "shipToCountry" => "USA",
+        "shipToCountry" => $shipping_country,
         "shipToEmail" => $billing_email,
         "shipToMobile" => $billing_phone,
         "shipToState" => $shipping_state,
@@ -337,92 +367,44 @@ add_action('woocommerce_new_order', function ($order_id) {
         "billToCity" => $billing_city,
         "billToState" => $billing_state,
         "billToPostal" => $billing_postcode,
-        "billToCountry" => "USA",
+        "billToCountry" => $billing_country,
         "billToMobile" => $billing_phone,
         "billToEmail" => $billing_email,
         "addtionalCharges" => 0,
         "paymentMode" => 1,
         "paymentStatus" => 0,
         "deliveryTargetDate" => "09-01-2021",
-        "companyName" => "Amazon",
+        "companyName" => "",
         "cxPhone" => $billing_phone,
         "cxEmail" => $user->user_email,
         "beginDate" => $date_created,
         "totalWeight" => "0.26235009178",
         "totalAmount" => $order_total,
         "notification" => false,
-        "lob" => "3",
+        "lob" => "9",
         "d2cOrder" => false,
-        "orderItems" => [array("sku" => "20ml Discovery (x3)","quantity" => 1,"price" => 25)],
-        "tags" => "113-9960202-4769850, Amazon, Amazon USA, Amazon.com"
+        // "orderItems" => [array("sku" => "SIP-OTH-TIKITUB","quantity" => 1,"price" => 25), array("sku" => "MIR-GLA-SANTA16-12","quantity" => 1,"price" => 25), array("sku" => "MIR-DNCG-SNT","quantity" => 1,"price" => 25)]
+        "orderItems" => $orderItems
     );
 
-    // $postdata = json_encode($arrdata);
-    // $data = array(
-	// 		"accountId" => $accountID,
-	// 		"referenceId" => $refID,
-	// 		"orderNumber" => "3979580080187",
-	// 		"orderType" => "6",
-	// 		"addressType" => "Residential",
-	// 		"shipToName" => "Beau  Tattersall",
-	// 		"shipToAddress" => "2500 TURK BLVD ROOM # 1403",
-	// 		"shipToCity" => "SAN FRANCISCO",
-	// 		"shipToCountry" => "USA",
-	// 		"shipToEmail" => "chj8n4yhh9508bk@trash.mp.common-services.com",
-	// 		"shipToMobile" => "000-000-0000",
-	// 		"shipToState" => "CA",
-	// 		"postalCode" => "94118-4392",
-	// 		"billToName" => "Beau  Tattersall",
-	// 		"billToAddress" => "2500 TURK BLVD ROOM # 1403",
-	// 		"billToCity" => "SAN FRANCISCO",
-	// 		"billToState" => "CA",
-	// 		"billToPostal" => "94118-4392",
-	// 		"billToCountry" => "USA",
-	// 		"billToMobile" => "000-000-0000",
-	// 		"billToEmail" => "chj8n4yhh9508bk@trash.mp.common-services.com",
-	// 		"addtionalCharges" => 0,
-	// 		"paymentMode" => 1,
-	// 		"paymentStatus" => 0,
-	// 		"deliveryTargetDate" => "09-01-2021",
-	// 		"companyName" => "Amazon",
-	// 		"cxPhone" => "516-530-9111",
-	// 		"cxEmail" => "info@cxEmail.com",
-	// 		"beginDate" => "2021-08-31T20:32:26-04:00",
-	// 		"totalWeight" => "0.26235009178",
-	// 		"totalAmount" => "27.16",
-	// 		"notification" => false,
-	// 		"lob" => "3",
-	// 		"d2cOrder" => false,
-	// 		"orderItems" => [array("sku" => "20ml Discovery (x3)","quantity" => 1,"price" => 25)],
-	// 		"tags" => "#113-9960202-4769850, Amazon, Amazon USA, Amazon.com"
-	// 	);
 
     $postdata = json_encode($data);
-    // echo '<script>alert('.$postdata.')</script><br/>';
-    // die;
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-    //curl_setopt($ch, CURLOPT_POSTFIELDS, '{"accountId":"'.$accountID.'","referenceId":"'.$refID.'","orderNumber":"'.$order_id.'","orderType":"6","addressType":"Residential","shipToName":"'.$shipping_first_name.' '.$shipping_last_name.'","shipToAddress":"'.$shipping_address_1.' '.$shipping_address_2.'","shipToCity":"'.$shipping_city.'","shipToCountry":"'.$shipping_country.'","shipToEmail":"'.$billing_email.'","shipToMobile":"'.$billing_phone.'","shipToState":"'.$shipping_state.'","postalCode":"'.$shipping_postcode.'","billToName":"'.$billing_first_name.' '.$billing_last_name.'","billToAddress":"'.$billing_address_1.' '.$billing_address_2.'","billToCity":"'.$billing_city.'","billToState":"'.$billing_state.'","billToPostal":"'.$billing_postcode.'","billToCountry":"'.$billing_country.'","billToMobile":"'.$billing_phone.'","billToEmail":"'.$billing_email.'","addtionalCharges":0,"paymentMode":1,"paymentStatus":0,"deliveryTargetDate":"09-01-2021","companyName":"'.$billing_company .'","cxPhone":"'.$billing_phone.'","cxEmail":"'.$user->user_email.'","beginDate":"'.$date_created.'","totalWeight":"0.26235009178","totalAmount":"'.$order_total.'","notification":false,"lob":"3","d2cOrder":false,"orderItems":[{"sku":"20ml Discovery (x3)","quantity":1,"price":25}],"tags":"#113-9960202-4769850, Amazon, Amazon USA, Amazon.com"}');
-    // curl_setopt($ch, CURLOPT_POSTFIELDS, '\{"accountId":"Noshinku","referenceId":"15249","orderNumber":"3979580080196","orderType":"6","addressType":"Residential","shipToName":"Beau  Tattersall","shipToAddress":"2500 TURK BLVD ROOM # 1403","shipToCity":"SAN FRANCISCO","shipToCountry":"USA","shipToEmail":"chj8n4yhh9508bk@trash.mp.common-services.com","shipToMobile":"000-000-0000","shipToState":"CA","postalCode":"94118-4392","billToName":"Beau  Tattersall","billToAddress":"2500 TURK BLVD ROOM # 1403","billToCity":"SAN FRANCISCO","billToState":"CA","billToPostal":"94118-4392","billToCountry":"USA","billToMobile":"000-000-0000","billToEmail":"chj8n4yhh9508bk@trash.mp.common-services.com","addtionalCharges":0,"paymentMode":1,"paymentStatus":0,"deliveryTargetDate":"09-01-2021","companyName":"Amazon","cxPhone":"516-530-9111","cxEmail":"info@cxEmail.com","beginDate":"2021-08-31T20:32:26-04:00","totalWeight":"0.26235009178","totalAmount":"27.16","notification":false,"lob":"3","d2cOrder":false,"orderItems":[{"sku":"20ml Discovery (x3)","quantity":1,"price":25}],"tags":"#113-9960202-4769850, Amazon, Amazon USA, Amazon.com"}');
+    
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('ApiKey: '.$api_key.'','Ver: 1.0','Device-Type: Web','Content-Type: application/json'));
     $result = curl_exec($ch);
 
-    echo '<script>alert('.$result.')</script><br/>';
     $result_jd = json_decode($result);
-    
-    echo '<script>alert('.$result_jd->responseStatusCode.')</script><br/>';
-    
-    // echo '<pre>'.print_r('<script>alert('.$result_jd.')</script>').'</pre>';
-    
-    // echo '<script>alert('.curl_error($ch).')</script>';
     
 	$table_name = $wpdb->prefix . 'fep_api_order_resp';
 	$wpdb->insert( 
 		$table_name, 
 		array( 
-            'responseMessage' => $result_jd->responseMessage,
+            'requestJson' => $postdata,
+			'responseMessage' => $result_jd->responseMessage,
             'responseStatus' => $result_jd->responseStatus,
             'responseStatusCode' => $result_jd->responseStatusCode,
             'responseObject' => $result_jd->responseObject,
@@ -432,7 +414,7 @@ add_action('woocommerce_new_order', function ($order_id) {
 
     curl_close($ch);
 
-}, 10, 1);
+}, 1, 2);
 
 
 function fep_install() {
@@ -449,7 +431,8 @@ function fep_install() {
 
         $sql = "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
-            responseMessage varchar(200) DEFAULT NULL,
+            requestJson varchar(5000) DEFAULT NULL,
+            responseMessage varchar(5000) DEFAULT NULL,
             responseStatus varchar(200) DEFAULT NULL,
             responseStatusCode varchar(200) DEFAULT NULL,
             responseObject varchar(200) DEFAULT NULL,
@@ -581,7 +564,6 @@ add_action( 'rest_api_init', function () {
     'callback' => 'adv_update_order',
   ) );
 } );
-
 
 function adv_update_order( $request ) {
 	$parameters = $request->get_json_params();
